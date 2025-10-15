@@ -1,0 +1,17 @@
+# Smart Meter Bridge MQTT Configuration
+
+# Smart Meter Bridge TCP connection
+bridge:
+  host: localhost
+  port: 9988
+
+# MQTT broker connection
+mqtt:
+  broker: tcp://192.168.10.11:1883
+  client_id: p1-backup-forwarder
+  topic: p1/raw/telegram
+  qos: 1
+  retain: false
+
+# Logging
+verbose: false
