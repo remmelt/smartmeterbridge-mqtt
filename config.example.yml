@@ -1,6 +1,11 @@
 # Smart Meter Bridge MQTT Configuration
 
-# Smart Meter Bridge TCP connection
+# Role: "publisher" or "subscriber"
+# - publisher: Read from Bridge TCP -> Publish to MQTT
+# - subscriber: Subscribe to MQTT -> Save to dated backup files
+role: publisher
+
+# Smart Meter Bridge TCP connection (required for publisher role)
 bridge:
   host: localhost
   port: 9988
@@ -12,6 +17,11 @@ mqtt:
   topic: p1/raw/telegram
   qos: 1
   retain: false
+
+# Backup configuration (required for subscriber role)
+# Telegrams will be saved to: {path}/YYYY/MM/DD.log
+backup:
+  path: /mnt/backup/datagrams
 
 # Logging
 verbose: false

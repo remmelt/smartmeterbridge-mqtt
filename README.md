@@ -1,6 +1,6 @@
 # Smart Meter Bridge MQTT Companion
 
-Smart Meter Bridge MQTT companion reads from the [Smart Meter Bridge](https://github.com/legolasbo/smartmeterBridge) service and writes to a configurable MQTT topic.
+Smart Meter Bridge MQTT companion provides bidirectional integration between the [Smart Meter Bridge](https://github.com/legolasbo/smartmeterBridge) service and MQTT brokers.
 
 ## Installation
 
@@ -27,7 +27,10 @@ cp config.example.yml config.yml
 Edit `config.yml` with your settings:
 
 ```yaml
-# Smart Meter Bridge TCP connection
+# Role: "publisher" or "subscriber"
+role: publisher
+
+# Smart Meter Bridge TCP connection (required for publisher role)
 bridge:
   host: localhost
   port: 9988
@@ -40,9 +43,39 @@ mqtt:
   qos: 1
   retain: false
 
+# Backup configuration (required for subscriber role)
+backup:
+  path: /mnt/backup/datagrams
+
 # Logging
 verbose: false
 ```
+
+### Roles
+
+The application supports two roles:
+
+#### Publisher Mode (default)
+Reads P1 telegrams from Smart Meter Bridge TCP server and publishes them to MQTT.
+
+**Required configuration:**
+- `bridge.host` and `bridge.port` - Smart Meter Bridge connection details
+- `mqtt.*` - MQTT broker connection details
+
+#### Subscriber Mode
+Subscribes to MQTT topic and saves received P1 telegrams to dated backup files.
+
+**Required configuration:**
+- `mqtt.*` - MQTT broker connection details
+- `backup.path` - Base directory for backups
+
+Telegrams are saved to: `{backup.path}/YYYY/MM/DD.log` with timestamp prefixes.
+
+**Features:**
+- Automatic directory structure creation
+- Timestamped telegram entries
+- Automatic MQTT reconnection handling
+- Graceful error handling
 
 ## Usage
 
@@ -52,11 +85,40 @@ Run the binary:
 ./smartmeterbridge-mqtt
 ```
 
-The application will:
+The application behavior depends on the configured role:
+
+### Publisher Mode
 1. Connect to the Smart Meter Bridge TCP server
 2. Connect to the configured MQTT broker
 3. Read P1 telegrams from the bridge
 4. Publish complete telegrams to the configured MQTT topic
+
+### Subscriber Mode
+1. Connect to the configured MQTT broker
+2. Subscribe to the configured topic
+3. Save received telegrams to dated log files
+4. Automatically handle reconnections and errors
+
+Example log file structure:
+```
+/mnt/backup/datagrams/
+├── 2025/
+│   └── 10/
+│       ├── 15.log
+│       ├── 16.log
+│       └── 17.log
+```
+
+Each log entry format:
+```
+[2025-10-15 14:30:45]
+/ISK5\2M550T-1012
+
+1-3:0.2.8(50)
+0-0:1.0.0(231015143045S)
+...
+!
+```
 
 ## Development
 
